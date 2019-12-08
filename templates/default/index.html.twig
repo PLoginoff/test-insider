@@ -1,0 +1,81 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Premier League{% endblock %}
+
+{% block body %}
+    <style>
+    </style>
+
+    <div class="container">
+        <div class="row">
+            <div class="col-8">
+                <h3>Premier League</h3>
+                <div class="container">
+                    <div class="row">
+                        <div class="col">
+                            <h5>League table</h5>
+                            <table class="table table-striped">
+                                <thead>
+                                <tr>
+                                    <th scope="col">Teams</th>
+                                    <th scope="col">PTS</th>
+                                    <th scope="col">P</th>
+                                    <th scope="col">W</th>
+                                    <th scope="col">D</th>
+                                    <th scope="col">L</th>
+                                    <th scope="col">GD</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for teamweek in teamweeks %}
+                                    <tr>
+                                        <td>{{teamweek.team}}</td>
+                                        <td>{{teamweek.pts}}</td>
+                                        <td>{{teamweek.played}}</td>
+                                        <td>{{teamweek.won}}</td>
+                                        <td>{{teamweek.drawn}}</td>
+                                        <td>{{teamweek.lost}}</td>
+                                        <td>{{teamweek.gd}}</td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="col">
+                            <h5>Match Results</h5>
+                            {% for match in week.matches %}
+                                <div class="row">
+                                    <div class="col-5">{{match.team1}}</div>
+                                    <div class="col-2">{{match.goals1}}-{{match.goals2}}</div>
+                                    <div class="col-5">{{match.team2}}</div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="row">
+                        <a type="button" class="btn btn-primary" href="{{path('week', {'week': week.number + 1})}}">Next Week</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-4">
+                <h3>Predictions</h3>
+                <div class="row">
+                    <div class="col">Chelsea</div>
+                    <div class="col">56%</div>
+                </div>
+                <div class="row">
+                    <div class="col">Chelsea</div>
+                    <div class="col">56%</div>
+                </div>
+                <div class="row">
+                    <div class="col">Chelsea</div>
+                    <div class="col">56%</div>
+                </div>
+                <div class="row">
+                    <div class="col">Chelsea</div>
+                    <div class="col">56%</div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
