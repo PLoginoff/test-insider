@@ -11,3 +11,4 @@
  - `bin/console doctrine:fixtures:load -n`
  - `symfony serve` and go to http://127.0.0.1:8000
  - or `php -S localhost:8000 -t public/` if you don't have `symfony`
+ - and `bin/phpunit`
