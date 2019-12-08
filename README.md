@@ -1,4 +1,5 @@
 # requirements
+ - php 7.2+
  - pdo_sqlite
  - composer
  - symfony (optional)

@@ -56,8 +56,9 @@ class EmulateService
                     $this->entityManager->persist($match);
                 }
                 $this->entityManager->persist($week);
+                $this->entityManager->flush();
+                $this->entityManager->refresh($week); // todo reverse side doest't work?
             }
-            $this->entityManager->flush();
         }
     }
 
