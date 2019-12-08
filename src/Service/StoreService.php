@@ -10,7 +10,7 @@ use App\Repository\TeamRepository;
 use App\Repository\WeekRepository;
 use Doctrine\ORM\EntityManagerInterface;
 
-class EmulateService
+class StoreService
 {
     /** @var WeekRepository */
     protected $weekRepository;
@@ -62,6 +62,12 @@ class EmulateService
         }
     }
 
+    /**
+     * Play week and add prev results
+     *
+     * @param int $number
+     * @return Week|null
+     */
     public function playWeek($number = 1)
     {
         $this->checkAndInitWeeks(); //
@@ -98,7 +104,7 @@ class EmulateService
     }
 
     /**
-     * Emulate week.
+     * Emulate current week
      *
      * @param Week $team1
      * @param Team $team2

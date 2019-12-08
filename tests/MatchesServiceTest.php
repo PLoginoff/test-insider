@@ -13,7 +13,7 @@ class MatchesServiceTest extends TestCase
     /** @var MatchesService */
     protected $service;
 
-    public function testSomething()
+    public function testDraw()
     {
         $weeks = $this->service->draw(4);
         foreach ($weeks as $w) {

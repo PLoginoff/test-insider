@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\TeamWeek;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Common\Persistence\ManagerRegistry;
+use App\Entity\Week;
 
 /**
  * @method TeamWeek|null find($id, $lockMode = null, $lockVersion = null)
@@ -17,6 +18,16 @@ class TeamWeekRepository extends ServiceEntityRepository
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, TeamWeek::class);
+    }
+
+
+    public function getForWeek(Week $week)
+    {
+        $teamweeks = $week->getTeamWeeks()->toArray();
+        usort($teamweeks, function (TeamWeek $a, TeamWeek $b) {
+            return $a->getPts() === $b->getPts() ? $a->getGd() < $b->getGd() : $a->getPts() < $b->getPts();
+        });
+        return $teamweeks;
     }
 
     // /**

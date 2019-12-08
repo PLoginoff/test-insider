@@ -6,6 +6,8 @@ use App\Entity\Team;
 
 class MatchesService
 {
+    public const MAX_GOALS = 5;
+
     /**
      * Premier League draw:
      *  - each team plays twice with each other team
@@ -61,14 +63,16 @@ class MatchesService
         $team1->getLuck();
         $team2->getStrength();
 
-        $totalGoals  = mt_rand(0, 6);
-        $first       = ceil($totalGoals / 2);
-        $second      = $totalGoals - $first;
+        $first  = mt_rand(0, self::MAX_GOALS);
+        $second = mt_rand(0, self::MAX_GOALS - $first);
+
+        $min = min([$first, $second]);
+        $max = max([$first, $second]);
 
         if ($team1->getLuck() > $team2->getLuck()) {
-            return [$first, $second];
+            return [$max, $min];
         } else {
-            return [$second, $first];
+            return [$min, $max];
         }
     }
 }
