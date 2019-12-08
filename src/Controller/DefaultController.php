@@ -13,21 +13,16 @@ class DefaultController extends AbstractController
 {
     /**
      * @Route("/", name="default")
-     * @Route("/week/{week}", name="week")
+     * @Route("/week/{weekNumber}", name="week")
      */
     public function index(
         WeekRepository $weekRepository,
         EmulateService $emulateService,
         PredictionService $predictionService,
-        int $week = 1
+        int $weekNumber = 1
     ) {
-        $emulateService->init();
-
-        if ($week > 6 || $week < 1) {
-            $week = 1;
-        }
-
-        $week       = $emulateService->getWeek($week);
+        $weekNumber = $weekNumber > 6 || $weekNumber < 1 ? 1 : $weekNumber;
+        $week       = $emulateService->playWeek($weekNumber);
         $teamweeks  = $week->getTeamWeeks()->toArray();
         usort($teamweeks, function (TeamWeek $a, TeamWeek $b) {
             return $a->getPts() === $b->getPts() ? $a->getGd() < $b->getGd() : $a->getPts() < $b->getPts();

@@ -36,44 +36,15 @@ class EmulateService
         $this->entityManager = $entityManager;
     }
 
-    public function getWeek($number = 1)
-    {
-        $week = $this->weekRepository->findOneBy(['number' => $number]);
-
-        if (!$week->getTeamWeeks()->count()) {
-            $week = $this->matchesService->playCurrentWeek($week);
-            // add prev results to this week
-            if ($number > 1) {
-                $prevWeek = $this->weekRepository->findOneBy(['number' => $number - 1]);
-                $prevTeamWeeks = [];
-                foreach ($prevWeek->getTeamWeeks() as $ptm) {
-                    $prevTeamWeeks[$ptm->getTeam()->getId()] = $ptm;
-                }
-                foreach ($week->getTeamWeeks() as $tm) {
-                    $tm->setPts($prevTeamWeeks[$tm->getTeam()->getId()]->getPts() + $tm->getPts());
-                    $tm->setPlayed($prevTeamWeeks[$tm->getTeam()->getId()]->getPlayed() + $tm->getPlayed());
-                    $tm->setWon($prevTeamWeeks[$tm->getTeam()->getId()]->getWon() + $tm->getWon());
-                    $tm->setDrawn($prevTeamWeeks[$tm->getTeam()->getId()]->getDrawn() + $tm->getDrawn());
-                    $tm->setLost($prevTeamWeeks[$tm->getTeam()->getId()]->getLost() + $tm->getLost());
-                    $tm->setGd($prevTeamWeeks[$tm->getTeam()->getId()]->getGd() + $tm->getGd());
-                }
-            }
-            $this->entityManager->persist($week);
-            $this->entityManager->flush();
-        }
-
-        return $week;
-    }
-
-    public function init()
+    protected function checkAndInitWeeks()
     {
         $week = $this->weekRepository->findOneBy(['number' => 1]);
 
-        // store weeks and matches
         if (!$week) {
+            // store weeks and matches
             $weeks = $this->matchesService->draw(4);
-            $teams = $this->teamRepository->findAll();
 
+            $teams = $this->teamRepository->findAll();
             foreach ($weeks as $number => $w) {
                 $week = new Week();
                 $week->setNumber($number);
@@ -88,5 +59,92 @@ class EmulateService
             }
             $this->entityManager->flush();
         }
+    }
+
+    public function playWeek($number = 1)
+    {
+        $this->checkAndInitWeeks(); //
+
+        $week = $this->weekRepository->findOneBy(['number' => $number]);
+
+        if (!$week->getTeamWeeks()->count()) {
+            $week = $this->playCurrentWeek($week);
+
+            // add prev results to this week
+            if ($number > 1) {
+                $prevWeek = $this->weekRepository->findOneBy(['number' => $number - 1]);
+                $prevTeamWeeks = [];
+                foreach ($prevWeek->getTeamWeeks() as $ptm) {
+                    $prevTeamWeeks[$ptm->getTeam()->getId()] = $ptm;
+                }
+                foreach ($week->getTeamWeeks() as $tm) {
+                    $prevTeam = $prevTeamWeeks[$tm->getTeam()->getId()];
+                    $tm->setPts($prevTeam->getPts() + $tm->getPts());
+                    $tm->setPlayed($prevTeam->getPlayed() + $tm->getPlayed());
+                    $tm->setWon($prevTeam->getWon() + $tm->getWon());
+                    $tm->setDrawn($prevTeam->getDrawn() + $tm->getDrawn());
+                    $tm->setLost($prevTeam->getLost() + $tm->getLost());
+                    $tm->setGd($prevTeam->getGd() + $tm->getGd());
+                }
+            }
+            $this->entityManager->persist($week);
+            $this->entityManager->flush();
+            $this->entityManager->clear();
+            $week = $this->weekRepository->findOneBy(['number' => $number]);
+        }
+
+        return $week;
+    }
+
+    /**
+     * Emulate week.
+     *
+     * @param Week $team1
+     * @param Team $team2
+     * @return Week
+     */
+    public function playCurrentWeek(Week $week): Week
+    {
+        foreach ($week->getMatches() as $match) {
+            $result = $this->matchesService->play($match->getTeam1(), $match->getTeam2());
+
+            $match->setGoals1($result[0]);
+            $match->setGoals2($result[1]);
+
+            $teamWeek1 = new TeamWeek();
+            $teamWeek1->setTeam($match->getTeam1());
+            $teamWeek1->setWeek($week);
+            $teamWeek1->setGD(($result[0] - $result[1]));
+            if ($result[0] > $result[1]) {
+                $teamWeek1->setPTS(3); // won
+                $teamWeek1->setWon(1);
+            } elseif ($result[0] == $result[1]) {
+                $teamWeek1->setPTS(1); //
+                $teamWeek1->setDrawn(1);
+            } else {
+                $teamWeek1->setLost(1);
+            }
+
+            $week->addTeamWeek($teamWeek1);
+
+            // todo copy-paste
+            $teamWeek2 = new TeamWeek();
+            $teamWeek2->setTeam($match->getTeam2());
+            $teamWeek2->setWeek($week);
+            $teamWeek2->setGD(($result[1] - $result[0]));
+            if ($result[0] < $result[1]) {
+                $teamWeek2->setPTS(3); // won
+                $teamWeek2->setWon(1);
+            } elseif ($result[0] == $result[1]) {
+                $teamWeek2->setPTS(1); //
+                $teamWeek2->setDrawn(1);
+            } else {
+                $teamWeek2->setLost(1);
+            }
+
+            $week->addTeamWeek($teamWeek2);
+        }
+
+        return $week;
     }
 }
